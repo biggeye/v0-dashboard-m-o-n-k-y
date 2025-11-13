@@ -42,41 +42,28 @@ const data = {
       title: "Tools",
       items: [
         {
-          title: "Overview",
-          url: "/",
+          title: "Defi Wallet Config",
+          url: "/trading",
           icon: BracketsIcon,
-          isActive: true,
-        },
-        {
-          title: "Laboratory",
-          url: "/laboratory",
-          icon: AtomIcon,
           isActive: false,
         },
         {
-          title: "Devices",
-          url: "/devices",
+          title: "Exchange Config",
+          url: "/trading",
           icon: ProcessorIcon,
           isActive: false,
         },
         {
-          title: "Security",
-          url: "/security",
-          icon: CuteRobotIcon,
-          isActive: false,
-        },
-        {
-          title: "Communication",
-          url: "/communication",
-          icon: EmailIcon,
-          isActive: false,
-        },
-        {
-          title: "Admin Settings",
+          title: "Portfolio Holdings",
           url: "/admin",
           icon: GearIcon,
           isActive: false,
-          locked: true,
+        },
+        {
+          title: "Trade Strategies",
+          url: "/admin",
+          icon: CuteRobotIcon,
+          isActive: false,
         },
       ],
     },
@@ -105,8 +92,8 @@ export function DashboardSidebar({
           <MonkeyIcon className="size-10 group-hover:scale-[1.7] origin-top-left transition-transform" />
         </div>
         <div className="grid flex-1 text-left text-sm leading-tight">
-          <span className="text-2xl font-display">M.O.N.K.Y.</span>
-          <span className="text-xs uppercase">The OS for Rebels</span>
+          <span className="text-2xl font-display">THE BAGMAN</span>
+          <span className="text-xs uppercase">COIN MANAGEMENT & TRADE MAKER</span>
         </div>
       </SidebarHeader>
 

@@ -29,7 +29,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export default function DashboardChart() {
+export default function DashboardChart({ symbol }: { symbol?: string }) {
   const [activeTab, setActiveTab] = React.useState<TimePeriod>("week")
   const [chartData, setChartData] = React.useState<Record<TimePeriod, ChartDataPoint[]>>({
     week: [],
@@ -40,12 +40,14 @@ export default function DashboardChart() {
 
   React.useEffect(() => {
     fetchChartData(activeTab)
-  }, [activeTab])
+  }, [activeTab, symbol])
 
   async function fetchChartData(period: TimePeriod) {
     try {
       setLoading(true)
-      const response = await fetch(`/api/dashboard/chart?period=${period}`)
+      const qs = new URLSearchParams({ period })
+      if (symbol) qs.set("symbol", symbol)
+      const response = await fetch(`/api/dashboard/chart?${qs.toString()}`)
       const data = await response.json()
 
       if (data.data) {

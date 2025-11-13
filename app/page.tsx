@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import DashboardPageLayout from "@/components/dashboard/layout"
 import DashboardStat from "@/components/dashboard/stat"
 import DashboardChart from "@/components/dashboard/chart"
+import CoinPicker from "@/components/crypto/coin-picker"
 import BracketsIcon from "@/components/icons/brackets"
 import GearIcon from "@/components/icons/gear"
 import ProcessorIcon from "@/components/icons/proccesor"
@@ -19,6 +20,7 @@ const iconMap = {
 export default function DashboardOverview() {
   const [dashboardStats, setDashboardStats] = useState<DashboardStatType[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedCoin, setSelectedCoin] = useState<string>("BTC")
 
   useEffect(() => {
     fetchDashboardData()
@@ -61,6 +63,11 @@ export default function DashboardOverview() {
         icon: BracketsIcon,
       }}
     >
+      <div className="flex items-center justify-end mb-4">
+        <div className="w-40">
+          <CoinPicker value={selectedCoin} onChange={setSelectedCoin} />
+        </div>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
         {dashboardStats.map((stat, index) => (
           <DashboardStat
@@ -77,7 +84,7 @@ export default function DashboardOverview() {
       </div>
 
       <div className="mb-6">
-        <DashboardChart />
+        <DashboardChart symbol={selectedCoin} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">

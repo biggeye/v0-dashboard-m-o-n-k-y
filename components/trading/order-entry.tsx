@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,26 +8,48 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TrendingUp, TrendingDown } from "lucide-react"
+import { toast } from "sonner"
 
 interface OrderEntryProps {
   selectedSymbol: string
+  onOrderPlaced?: () => void
 }
 
-export function OrderEntry({ selectedSymbol }: OrderEntryProps) {
+export function OrderEntry({ selectedSymbol, onOrderPlaced }: OrderEntryProps) {
   const [orderType, setOrderType] = useState<"market" | "limit">("market")
   const [quantity, setQuantity] = useState("")
   const [price, setPrice] = useState("")
   const [selectedExchange, setSelectedExchange] = useState("")
   const [loading, setLoading] = useState(false)
+  const [exchanges, setExchanges] = useState<any[]>([])
+
+  useEffect(() => {
+    fetchExchanges()
+  }, [])
+
+  async function fetchExchanges() {
+    try {
+      const response = await fetch("/api/exchanges/connect")
+      const data = await response.json()
+      if (data.data) {
+        setExchanges(data.data)
+        if (data.data.length > 0) {
+          setSelectedExchange(data.data[0].id)
+        }
+      }
+    } catch (error) {
+      console.error("[v0] Error fetching exchanges:", error)
+    }
+  }
 
   async function handleSubmitOrder(side: "buy" | "sell") {
     if (!quantity || (orderType === "limit" && !price)) {
-      alert("Please fill in all required fields")
+      toast.error("Please fill in all required fields")
       return
     }
 
     if (!selectedExchange) {
-      alert("Please select an exchange connection")
+      toast.error("Please select an exchange connection")
       return
     }
 
@@ -47,16 +69,19 @@ export function OrderEntry({ selectedSymbol }: OrderEntryProps) {
 
       const data = await response.json()
 
-      if (data.success) {
-        alert(`${side.toUpperCase()} order placed successfully!`)
+      if (data.success || response.ok) {
+        toast.success(`${side.toUpperCase()} order placed successfully!`)
         setQuantity("")
         setPrice("")
+        if (onOrderPlaced) {
+          onOrderPlaced()
+        }
       } else {
-        alert(`Failed to place order: ${data.error}`)
+        toast.error(`Failed to place order: ${data.error || "Unknown error"}`)
       }
     } catch (error) {
       console.error("[v0] Order submission error:", error)
-      alert("Failed to submit order")
+      toast.error("Failed to submit order")
     } finally {
       setLoading(false)
     }
@@ -75,9 +100,17 @@ export function OrderEntry({ selectedSymbol }: OrderEntryProps) {
               <SelectValue placeholder="Select exchange" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="exchange-1">Kraken</SelectItem>
-              <SelectItem value="exchange-2">Binance US</SelectItem>
-              <SelectItem value="exchange-3">Coinbase</SelectItem>
+              {exchanges.length > 0 ? (
+                exchanges.map((exchange) => (
+                  <SelectItem key={exchange.id} value={exchange.id}>
+                    {exchange.exchange_name}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="none" disabled>
+                  No exchanges connected
+                </SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -100,7 +133,13 @@ export function OrderEntry({ selectedSymbol }: OrderEntryProps) {
 
             <div className="space-y-2">
               <Label>Quantity</Label>
-              <Input type="number" placeholder="0.00" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
+              <Input 
+                type="number" 
+                placeholder="0.00" 
+                value={quantity} 
+                onChange={(e) => setQuantity(e.target.value)}
+                disabled={!selectedExchange}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
@@ -108,7 +147,7 @@ export function OrderEntry({ selectedSymbol }: OrderEntryProps) {
                 className="w-full gap-2"
                 variant="default"
                 onClick={() => handleSubmitOrder("buy")}
-                disabled={loading}
+                disabled={loading || !selectedExchange}
               >
                 <TrendingUp className="w-4 h-4" />
                 Buy {selectedSymbol}
@@ -117,7 +156,7 @@ export function OrderEntry({ selectedSymbol }: OrderEntryProps) {
                 className="w-full gap-2"
                 variant="destructive"
                 onClick={() => handleSubmitOrder("sell")}
-                disabled={loading}
+                disabled={loading || !selectedExchange}
               >
                 <TrendingDown className="w-4 h-4" />
                 Sell {selectedSymbol}
@@ -133,12 +172,24 @@ export function OrderEntry({ selectedSymbol }: OrderEntryProps) {
 
             <div className="space-y-2">
               <Label>Price</Label>
-              <Input type="number" placeholder="0.00" value={price} onChange={(e) => setPrice(e.target.value)} />
+              <Input 
+                type="number" 
+                placeholder="0.00" 
+                value={price} 
+                onChange={(e) => setPrice(e.target.value)}
+                disabled={!selectedExchange}
+              />
             </div>
 
             <div className="space-y-2">
               <Label>Quantity</Label>
-              <Input type="number" placeholder="0.00" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
+              <Input 
+                type="number" 
+                placeholder="0.00" 
+                value={quantity} 
+                onChange={(e) => setQuantity(e.target.value)}
+                disabled={!selectedExchange}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
@@ -146,7 +197,7 @@ export function OrderEntry({ selectedSymbol }: OrderEntryProps) {
                 className="w-full gap-2"
                 variant="default"
                 onClick={() => handleSubmitOrder("buy")}
-                disabled={loading}
+                disabled={loading || !selectedExchange}
               >
                 <TrendingUp className="w-4 h-4" />
                 Buy Limit
@@ -155,7 +206,7 @@ export function OrderEntry({ selectedSymbol }: OrderEntryProps) {
                 className="w-full gap-2"
                 variant="destructive"
                 onClick={() => handleSubmitOrder("sell")}
-                disabled={loading}
+                disabled={loading || !selectedExchange}
               >
                 <TrendingDown className="w-4 h-4" />
                 Sell Limit

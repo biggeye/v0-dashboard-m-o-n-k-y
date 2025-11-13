@@ -51,10 +51,10 @@ export default function TradingPage() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="orders">
-              <OpenOrders />
+              <OpenOrders key={`orders-${refreshKey}`} />
             </TabsContent>
             <TabsContent value="history">
-              <TradeHistory />
+              <TradeHistory key={`history-${refreshKey}`} />
             </TabsContent>
           </Tabs>
         </div>
@@ -62,7 +62,10 @@ export default function TradingPage() {
         {/* Right: Order Entry & Market Data */}
         <div className="lg:col-span-4 space-y-4">
           <PriceTicker symbols={watchlist} />
-          <OrderEntry selectedSymbol={selectedSymbol} />
+          <OrderEntry 
+            selectedSymbol={selectedSymbol}
+            onOrderPlaced={handleOrderPlaced}
+          />
           <WalletPortfolio />
         </div>
       </div>

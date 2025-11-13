@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -20,7 +20,7 @@ export default function CryptoDashboard() {
 
   const handleAddSymbol = (symbol: string) => {
     const upper = symbol.toUpperCase()
-    if (!watchlist.includes(upper)) {
+    if (!watchlist.includes(upper) && symbol.trim()) {
       setWatchlist([...watchlist, upper])
     }
   }
@@ -28,6 +28,16 @@ export default function CryptoDashboard() {
   const handleRemoveSymbol = (symbol: string) => {
     setWatchlist(watchlist.filter((s) => s !== symbol))
   }
+
+  const handleAddFromInput = () => {
+    handleAddSymbol(symbolInput)
+    setSymbolInput("")
+  }
+
+  // Extract numeric prices from the fetched data for indicators
+  const priceArray = prices
+    ?.map((p: any) => p.price)
+    .filter((p: any) => typeof p === "number" && !isNaN(p)) || []
 
   return (
     <DashboardPageLayout
@@ -54,21 +64,24 @@ export default function CryptoDashboard() {
                 <div className="flex gap-2 mt-2">
                   <Input
                     placeholder="BTC"
+                    value={symbolInput}
+                    onChange={(e) => setSymbolInput(e.target.value)}
                     onKeyPress={(e) => {
                       if (e.key === "Enter") {
-                        handleAddSymbol(e.currentTarget.value)
-                        e.currentTarget.value = ""
+                        handleAddFromInput()
                       }
                     }}
                   />
-                  <Button size="sm">Add</Button>
+                  <Button size="sm" onClick={handleAddFromInput}>
+                    Add
+                  </Button>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Quick Select</label>
                 <div className="flex flex-wrap gap-2">
-                  {["BTC", "ETH", "AAPL", "MSFT", "GOOGL"].map((sym) => (
+                  {["BTC", "ETH", "SOL", "ADA", "DOGE"].map((sym) => (
                     <Button
                       key={sym}
                       variant={selectedSymbol === sym ? "default" : "outline"}
@@ -87,7 +100,10 @@ export default function CryptoDashboard() {
 
       {/* Indicators Row */}
       <div className="mt-6">
-        <IndicatorDisplay prices={priceData} symbol={selectedSymbol} />
+        <IndicatorDisplay 
+          prices={priceArray} 
+          symbol={selectedSymbol}
+        />
       </div>
     </DashboardPageLayout>
   )
