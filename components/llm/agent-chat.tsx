@@ -8,15 +8,19 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Send, Loader2 } from "lucide-react"
+import { useChartVisualization } from "@/lib/contexts/chart-visualization-context"
+import type { StrategyVisualization } from "@/lib/types/visualization"
 
 interface Message {
   id: string
   role: "user" | "assistant"
   content: string
   timestamp: Date
+  visualization?: StrategyVisualization
 }
 
 export function AgentChat() {
+  const { addVisualization } = useChartVisualization()
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -68,11 +72,33 @@ export function AgentChat() {
 
       const data = await response.json()
 
+      // Extract visualization data if present
+      let visualization: StrategyVisualization | undefined
+      try {
+        // Try to parse visualization from result if it's a JSON string
+        const resultContent = data.result || ""
+        const jsonMatch = resultContent.match(/```json\s*([\s\S]*?)\s*```/) || resultContent.match(/\{[\s\S]*"visualization"[\s\S]*\}/)
+        if (jsonMatch) {
+          const parsed = typeof jsonMatch === "string" ? JSON.parse(jsonMatch) : JSON.parse(jsonMatch[1] || jsonMatch[0])
+          if (parsed.visualization) {
+            visualization = parsed.visualization
+            addVisualization(visualization)
+          }
+        }
+      } catch (e) {
+        // If parsing fails, try direct extraction from data
+        if (data.visualization) {
+          visualization = data.visualization
+          addVisualization(visualization)
+        }
+      }
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
         content: data.result || "I'm analyzing your request. Could you provide more details?",
         timestamp: new Date(),
+        visualization,
       }
 
       setMessages((prev) => [...prev, assistantMessage])

@@ -12,6 +12,7 @@ import Notifications from "@/components/dashboard/notifications"
 import { MobileChat } from "@/components/chat/mobile-chat"
 import Chat from "@/components/chat"
 import { WalletProvider } from "@/lib/web3/wallet-provider"
+import { ChartVisualizationProvider } from "@/lib/contexts/chart-visualization-context"
 
 const robotoMono = Roboto_Mono({
   variable: "--font-roboto-mono",
@@ -48,7 +49,8 @@ export default function RootLayout({
       <body className={`${rebelGrotesk.variable} ${robotoMono.variable} antialiased`}>
         <V0Provider isV0={isV0}>
           <WalletProvider>
-            <SidebarProvider>
+            <ChartVisualizationProvider>
+              <SidebarProvider>
               {/* Mobile Header - only visible on mobile */}
               <MobileHeader />
 
@@ -70,6 +72,7 @@ export default function RootLayout({
               {/* Mobile Chat - floating CTA with drawer */}
               <MobileChat />
             </SidebarProvider>
+            </ChartVisualizationProvider>
           </WalletProvider>
         </V0Provider>
       </body>

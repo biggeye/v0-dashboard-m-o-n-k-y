@@ -13,10 +13,13 @@ import { PriceTicker } from "@/components/crypto/price-ticker"
 import { ExchangeConnections } from "@/components/trading/exchange-connections"
 import { WalletConnectButton } from "@/components/wallet/wallet-connect-button"
 import { WalletPortfolio } from "@/components/wallet/wallet-portfolio"
+import { useChartVisualization } from "@/lib/contexts/chart-visualization-context"
 
 export default function TradingPage() {
   const [selectedSymbol, setSelectedSymbol] = useState("BTC")
   const [watchlist] = useState(["BTC", "ETH", "SOL", "ADA"])
+  const { getOverlaysForSymbol } = useChartVisualization()
+  const overlays = getOverlaysForSymbol(selectedSymbol)
 
   return (
     <DashboardPageLayout
@@ -36,7 +39,7 @@ export default function TradingPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
         {/* Left: Price Chart */}
         <div className="lg:col-span-8 space-y-4">
-          <PriceChart symbol={selectedSymbol} />
+          <PriceChart symbol={selectedSymbol} overlays={overlays} />
 
           <Tabs defaultValue="orders" className="w-full">
             <TabsList className="w-full">
