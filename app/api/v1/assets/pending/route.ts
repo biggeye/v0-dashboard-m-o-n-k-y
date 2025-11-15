@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 import { getPendingDiscoveredTokens } from "@/lib/web3/assets/asset-service"
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
