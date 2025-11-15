@@ -21,7 +21,7 @@ interface Holding {
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 export function PortfolioManager() {
-  const { data, mutate } = useSWR("/api/portfolio/holdings", fetcher, {
+  const { data, mutate } = useSWR("/api/v1/portfolio/holdings", fetcher, {
     refreshInterval: 30000,
   })
   const [isOpen, setIsOpen] = useState(false)
@@ -39,7 +39,7 @@ export function PortfolioManager() {
     }
 
     try {
-      const response = await fetch("/api/portfolio/holdings", {
+      const response = await fetch("/api/v1/portfolio/holdings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -61,7 +61,7 @@ export function PortfolioManager() {
 
   const handleDeleteHolding = async (id: string) => {
     try {
-      await fetch(`/api/portfolio/holdings/${id}`, { method: "DELETE" })
+      await fetch(`/api/v1/portfolio/holdings/${id}`, { method: "DELETE" })
       mutate()
     } catch (error) {
       console.error("Error deleting holding:", error)

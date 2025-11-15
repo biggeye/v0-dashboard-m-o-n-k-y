@@ -35,7 +35,7 @@ export function IndicatorDisplay({ prices, symbol }: IndicatorDisplayProps) {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch("/api/crypto/indicators", {
+      const response = await fetch("/api/v1/crypto/indicators", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

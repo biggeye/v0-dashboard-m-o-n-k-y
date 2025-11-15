@@ -1,7 +1,6 @@
 import Image from "next/image";
 import type { ChatConversation } from "@/types/chat";
 import { formatDate } from "./utils";
-import { mockChatData } from "@/data/chat-mock";
 import { cn } from "@/lib/utils";
 
 interface ChatPreviewProps {
@@ -13,8 +12,10 @@ export default function ChatPreview({
   conversation,
   onOpenConversation,
 }: ChatPreviewProps) {
+  // Get the other participant (not the current user)
+  // Note: In production, current user ID should come from auth context
   const user = conversation.participants.find(
-    (p) => p.id !== mockChatData.currentUser.id
+    (p) => p.id !== "current-user" // TODO: Replace with actual user ID from auth
   );
 
   if (!user) return null;

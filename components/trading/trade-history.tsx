@@ -25,7 +25,7 @@ export function TradeHistory() {
 
   async function fetchTradeHistory() {
     try {
-      const response = await fetch("/api/transactions?limit=50")
+      const response = await fetch("/api/v1/transactions?limit=50")
       const data = await response.json()
 
       if (data.data) {

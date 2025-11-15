@@ -47,7 +47,7 @@ export default function DashboardChart({ symbol }: { symbol?: string }) {
       setLoading(true)
       const qs = new URLSearchParams({ period })
       if (symbol) qs.set("symbol", symbol)
-      const response = await fetch(`/api/dashboard/chart?${qs.toString()}`)
+      const response = await fetch(`/api/v1/dashboard/chart?${qs.toString()}`)
       const data = await response.json()
 
       if (data.data) {

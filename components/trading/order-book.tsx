@@ -27,29 +27,11 @@ export function OrderBook({ symbol }: OrderBookProps) {
   async function fetchOrderBook() {
     try {
       setLoading(true)
-      // Generate mock order book data - in production, fetch from exchange API
-      const baseBid = 45000
-      const baseAsk = 45010
-
-      const mockBids: OrderLevel[] = Array.from({ length: 10 }, (_, i) => ({
-        price: baseBid - i * Math.random() * 100,
-        quantity: Math.random() * 2,
-      }))
-
-      const mockAsks: OrderLevel[] = Array.from({ length: 10 }, (_, i) => ({
-        price: baseAsk + i * Math.random() * 100,
-        quantity: Math.random() * 2,
-      }))
-
-      setBids(mockBids)
-      setAsks(mockAsks)
-
-      // Calculate spread
-      if (mockBids.length > 0 && mockAsks.length > 0) {
-        const spread = mockAsks[0].price - mockBids[0].price
-        const spreadPct = (spread / mockBids[0].price) * 100
-        setSpreadPercentage(spreadPct)
-      }
+      // TODO: Fetch order book data from exchange API
+      // For now, return empty state
+      setBids([])
+      setAsks([])
+      setSpreadPercentage(0)
     } catch (error) {
       console.error("[v0] Error fetching order book:", error)
     } finally {
@@ -81,30 +63,44 @@ export function OrderBook({ symbol }: OrderBookProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <h4 className="text-sm font-semibold mb-2 text-success">Bids (Buy Orders)</h4>
-            <div className="space-y-1 max-h-80 overflow-y-auto">
-              {bids.map((bid, i) => (
-                <div key={i} className="flex justify-between text-sm p-1 hover:bg-muted/50 rounded">
-                  <span className="text-success font-mono">${bid.price.toFixed(2)}</span>
-                  <span className="text-muted-foreground font-mono">{bid.quantity.toFixed(4)}</span>
-                </div>
-              ))}
+        {bids.length === 0 && asks.length === 0 ? (
+          <div className="text-center text-muted-foreground py-8">
+            No order book data available. Connect an exchange to view live order book data.
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h4 className="text-sm font-semibold mb-2 text-success">Bids (Buy Orders)</h4>
+              <div className="space-y-1 max-h-80 overflow-y-auto">
+                {bids.length === 0 ? (
+                  <div className="text-center text-muted-foreground text-sm py-4">No bids</div>
+                ) : (
+                  bids.map((bid, i) => (
+                    <div key={i} className="flex justify-between text-sm p-1 hover:bg-muted/50 rounded">
+                      <span className="text-success font-mono">${bid.price.toFixed(2)}</span>
+                      <span className="text-muted-foreground font-mono">{bid.quantity.toFixed(4)}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold mb-2 text-destructive">Asks (Sell Orders)</h4>
+              <div className="space-y-1 max-h-80 overflow-y-auto">
+                {asks.length === 0 ? (
+                  <div className="text-center text-muted-foreground text-sm py-4">No asks</div>
+                ) : (
+                  asks.map((ask, i) => (
+                    <div key={i} className="flex justify-between text-sm p-1 hover:bg-muted/50 rounded">
+                      <span className="text-destructive font-mono">${ask.price.toFixed(2)}</span>
+                      <span className="text-muted-foreground font-mono">{ask.quantity.toFixed(4)}</span>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
-          <div>
-            <h4 className="text-sm font-semibold mb-2 text-destructive">Asks (Sell Orders)</h4>
-            <div className="space-y-1 max-h-80 overflow-y-auto">
-              {asks.map((ask, i) => (
-                <div key={i} className="flex justify-between text-sm p-1 hover:bg-muted/50 rounded">
-                  <span className="text-destructive font-mono">${ask.price.toFixed(2)}</span>
-                  <span className="text-muted-foreground font-mono">{ask.quantity.toFixed(4)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   )

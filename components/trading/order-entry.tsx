@@ -7,8 +7,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { TrendingUp, TrendingDown } from "lucide-react"
+import { TrendingUp, TrendingDown, AlertTriangle } from "lucide-react"
 import { toast } from "sonner"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import type { ExchangeConnection } from "@/lib/types/exchange-client"
 
 interface OrderEntryProps {
   selectedSymbol: string
@@ -21,7 +24,7 @@ export function OrderEntry({ selectedSymbol, onOrderPlaced }: OrderEntryProps) {
   const [price, setPrice] = useState("")
   const [selectedExchange, setSelectedExchange] = useState("")
   const [loading, setLoading] = useState(false)
-  const [exchanges, setExchanges] = useState<any[]>([])
+  const [exchanges, setExchanges] = useState<ExchangeConnection[]>([])
 
   useEffect(() => {
     fetchExchanges()
@@ -29,7 +32,7 @@ export function OrderEntry({ selectedSymbol, onOrderPlaced }: OrderEntryProps) {
 
   async function fetchExchanges() {
     try {
-      const response = await fetch("/api/exchanges/connect")
+      const response = await fetch("/api/v1/exchanges/connect")
       const data = await response.json()
       if (data.data) {
         setExchanges(data.data)
@@ -53,9 +56,21 @@ export function OrderEntry({ selectedSymbol, onOrderPlaced }: OrderEntryProps) {
       return
     }
 
+    // Client-side env gating
+    const connection = exchanges.find((ex) => ex.id === selectedExchange)
+    if (connection) {
+      const tradingMode = process.env.NEXT_PUBLIC_TRADING_MODE ?? "dev"
+      const canUseProd = tradingMode === "live"
+      
+      if (connection.env === "prod" && !canUseProd) {
+        toast.error("Live trading is disabled. Use a sandbox or simulation connection.")
+        return
+      }
+    }
+
     setLoading(true)
     try {
-      const response = await fetch(`/api/exchanges/${selectedExchange}/order`, {
+      const response = await fetch(`/api/v1/exchanges/${selectedExchange}/order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -101,11 +116,37 @@ export function OrderEntry({ selectedSymbol, onOrderPlaced }: OrderEntryProps) {
             </SelectTrigger>
             <SelectContent>
               {exchanges.length > 0 ? (
-                exchanges.map((exchange) => (
-                  <SelectItem key={exchange.id} value={exchange.id}>
-                    {exchange.exchange_name}
-                  </SelectItem>
-                ))
+                exchanges.map((exchange) => {
+                  const getProviderIcon = (provider: string) => {
+                    switch (provider) {
+                      case "binance":
+                        return "🟡"
+                      case "kraken":
+                        return "🐙"
+                      case "coinbase":
+                        return "🔵"
+                      case "simulation":
+                        return "🎮"
+                      default:
+                        return "📊"
+                    }
+                  }
+                  const connectionName = exchange.displayName || exchange.exchangeKey || exchange.exchange_name?.replace("_", " ") || "Unknown"
+                  return (
+                    <SelectItem key={exchange.id} value={exchange.id}>
+                      <div className="flex items-center gap-2">
+                        <span>{getProviderIcon(exchange.provider)}</span>
+                        <span>{connectionName}</span>
+                        <Badge
+                          variant={exchange.env === "prod" ? "destructive" : "secondary"}
+                          className="text-xs ml-2"
+                        >
+                          {exchange.env === "prod" ? "PROD" : "SANDBOX"}
+                        </Badge>
+                      </div>
+                    </SelectItem>
+                  )
+                })
               ) : (
                 <SelectItem value="none" disabled>
                   No exchanges connected
@@ -214,6 +255,41 @@ export function OrderEntry({ selectedSymbol, onOrderPlaced }: OrderEntryProps) {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Risk Info Section */}
+        {selectedExchange && (() => {
+          const connection = exchanges.find((ex) => ex.id === selectedExchange)
+          if (!connection) return null
+
+          const connectionName = connection.displayName || connection.exchangeKey || connection.exchange_name?.replace("_", " ") || "Unknown"
+          const isProd = connection.env === "prod"
+
+          return (
+            <div className="space-y-2 pt-4 border-t">
+              <div className="text-sm space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Environment:</span>
+                  <Badge variant={isProd ? "destructive" : "secondary"} className="text-xs">
+                    {isProd ? "PROD" : "SANDBOX"}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Connection:</span>
+                  <span className="font-medium">{connectionName}</span>
+                </div>
+              </div>
+              {isProd && (
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Live Trading Warning</AlertTitle>
+                  <AlertDescription>
+                    Orders on this connection are LIVE. Ensure risk limits are configured.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+          )
+        })()}
       </CardContent>
     </Card>
   )

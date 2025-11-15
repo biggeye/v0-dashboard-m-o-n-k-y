@@ -42,7 +42,7 @@ export function MobileChat() {
       {/* Floating CTA Button - Styled like collapsed desktop chat */}
       <SheetTrigger asChild>
         <Button
-          size="xl"
+          size="lg"
           className="pl-3 fixed gap-4 bottom-4 right-4 z-40 md:hidden"
         >
           {/* Status Indicator */}

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Bullet } from "@/components/ui/bullet";
-import { AnimatePresence, motion, PanInfo } from "motion/react";
+import { AnimatePresence, motion, PanInfo } from "framer-motion";
 import NotificationItem from "./notification-item";
 import type { Notification } from "@/types/dashboard";
 import { SheetClose, SheetHeader, SheetTitle } from "@/components/ui/sheet";

@@ -28,25 +28,9 @@ export function WalletPortfolio() {
   async function fetchWalletHoldings() {
     setLoading(true)
     try {
-      // In production, fetch actual token balances using a service like Alchemy or Moralis
-      // For now, we'll show a placeholder
-      const mockHoldings: WalletHolding[] = [
-        {
-          symbol: "ETH",
-          quantity: 2.5,
-          value: 6000,
-          change24h: 3.2,
-          chainName: "Ethereum",
-        },
-        {
-          symbol: "USDC",
-          quantity: 5000,
-          value: 5000,
-          change24h: 0.1,
-          chainName: "Ethereum",
-        },
-      ]
-      setHoldings(mockHoldings)
+      // TODO: Fetch actual token balances using a service like Alchemy or Moralis
+      // For now, return empty state
+      setHoldings([])
     } catch (error) {
       console.error("[v0] Error fetching wallet holdings:", error)
     } finally {

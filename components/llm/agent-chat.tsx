@@ -8,8 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Send, Loader2 } from "lucide-react"
-import { useChartVisualization } from "@/lib/contexts/chart-visualization-context"
-import type { StrategyVisualization } from "@/lib/types/visualization"
+import { useChartVisualization, createVisualizationFromRaw, type StrategyVisualization } from "@/lib/visualization"
 
 interface Message {
   id: string
@@ -59,7 +58,7 @@ export function AgentChat() {
     try {
       // Call LLM with the message
       // In production, this would call your LLM backend
-      const response = await fetch("/api/llm/analyze", {
+      const response = await fetch("/api/v1/llm/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -81,15 +80,20 @@ export function AgentChat() {
         if (jsonMatch) {
           const parsed = typeof jsonMatch === "string" ? JSON.parse(jsonMatch) : JSON.parse(jsonMatch[1] || jsonMatch[0])
           if (parsed.visualization) {
-            visualization = parsed.visualization
-            addVisualization(visualization)
+            // Use service to validate and create visualization from raw data
+            visualization = createVisualizationFromRaw(parsed.visualization) ?? undefined
+            if (visualization) {
+              addVisualization(visualization)
+            }
           }
         }
       } catch (e) {
         // If parsing fails, try direct extraction from data
         if (data.visualization) {
-          visualization = data.visualization
-          addVisualization(visualization)
+          visualization = createVisualizationFromRaw(data.visualization) ?? undefined
+          if (visualization) {
+            addVisualization(visualization)
+          }
         }
       }
 

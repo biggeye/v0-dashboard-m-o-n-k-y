@@ -1,6 +1,35 @@
 // Type definitions for exchange integrations
+import { CoinbaseApiFamily } from "@/lib/exchanges/coinbase/schema"
 
-export type ExchangeName = "kraken" | "binance_us" | "coinbase" | "coinbase_pro"
+export type ExchangeProvider = "binance" | "kraken" | "bybit" | "coinbase"
+
+export type ExchangeEnv = "prod" | "sandbox"
+
+// Legacy exchange names - these are maintained for backward compatibility
+// New code should use provider + api_family + env instead
+// TODO: Deprecate these when all connections have been migrated to new schema
+export const LEGACY_EXCHANGE_NAMES = {
+  KRAKEN: "kraken",
+  BINANCE_US: "binance_us",
+  COINBASE: "coinbase", // Legacy - maps to coinbase + advanced_trade
+  COINBASE_PRO: "coinbase_pro", // Legacy - maps to coinbase + advanced_trade
+  COINBASE_ADVANCED_TRADE: "coinbase_advanced_trade",
+  COINBASE_EXCHANGE: "coinbase_exchange",
+  COINBASE_APP: "coinbase_app",
+  COINBASE_SERVER_WALLET: "coinbase_server_wallet",
+  COINBASE_TRADE_API: "coinbase_trade_api",
+} as const
+
+export type ExchangeName =
+  | "kraken"
+  | "binance_us"
+  | "coinbase"
+  | "coinbase_pro"
+  | "coinbase_advanced_trade"
+  | "coinbase_exchange"
+  | "coinbase_app"
+  | "coinbase_server_wallet"
+  | "coinbase_trade_api"
 
 export type OrderType = "market" | "limit" | "stop_loss" | "stop_limit" | "trailing_stop"
 export type OrderSide = "buy" | "sell"
@@ -22,6 +51,8 @@ export interface ExchangeConnection {
     withdraw: boolean
   }
   metadata: Record<string, unknown>
+  // Coinbase-specific: which API family this connection uses
+  coinbaseApiFamily?: CoinbaseApiFamily
   createdAt: string
   updatedAt: string
 }
@@ -30,6 +61,20 @@ export interface ExchangeCredentials {
   apiKey: string
   apiSecret: string
   apiPassphrase?: string // For Coinbase Pro
+}
+
+export type ExchangeConnectionConfig = {
+  id: string
+  provider: ExchangeProvider
+  apiFamily?: CoinbaseApiFamily | string // optional for non-Coinbase
+  env: ExchangeEnv
+  name: ExchangeName
+  credentials: {
+    apiKey: string
+    apiSecret: string
+    apiPassphrase?: string
+  }
+  metadata?: Record<string, any>
 }
 
 export interface ExchangeBalance {

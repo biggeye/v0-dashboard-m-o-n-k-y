@@ -1,7 +1,6 @@
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import type { ChatConversation } from "@/types/chat";
-import { mockChatData } from "@/data/chat-mock";
 import ChatContact from "./chat-contact";
 
 interface ChatExpandedProps {
@@ -42,10 +41,12 @@ export default function ChatExpanded({
       {/* Conversations List */}
       <div className="flex-1 overflow-y-auto max-h-80">
         {conversations.map((conversation) => {
+          // Get the other participant (not the current user)
+          // Note: In production, current user ID should come from auth context
           const otherUser = conversation.participants.find(
-            (p) => p.id !== mockChatData.currentUser.id
+            (p) => p.id !== "current-user" // TODO: Replace with actual user ID from auth
           );
-          if (!otherUser) return null;
+          if (!otherUser || conversation.participants.length < 2) return null;
 
           return (
             <ChatContact

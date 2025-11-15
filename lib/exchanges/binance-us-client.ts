@@ -53,7 +53,7 @@ export class BinanceUSClient {
   }
 
   async getBalance() {
-    const result = await this.request("/api/v3/account", "GET", {}, true)
+    const result = await this.request("/api/v1/v3/account", "GET", {}, true)
     return result.balances
       .filter((b: any) => Number.parseFloat(b.free) > 0 || Number.parseFloat(b.locked) > 0)
       .map((b: any) => ({
@@ -65,7 +65,7 @@ export class BinanceUSClient {
   }
 
   async getTicker(symbol: string) {
-    const ticker24h = await this.request("/api/v3/ticker/24hr", "GET", { symbol })
+    const ticker24h = await this.request("/api/v1/v3/ticker/24hr", "GET", { symbol })
 
     return {
       symbol,
@@ -98,7 +98,7 @@ export class BinanceUSClient {
       orderParams.timeInForce = "GTC" // Good Till Cancelled
     }
 
-    const result = await this.request("/api/v3/order", "POST", orderParams, true)
+    const result = await this.request("/api/v1/v3/order", "POST", orderParams, true)
 
     return {
       orderId: result.orderId.toString(),
@@ -110,12 +110,12 @@ export class BinanceUSClient {
   }
 
   async cancelOrder(symbol: string, orderId: string) {
-    const result = await this.request("/api/v3/order", "DELETE", { symbol, orderId }, true)
+    const result = await this.request("/api/v1/v3/order", "DELETE", { symbol, orderId }, true)
     return result
   }
 
   async getOrderStatus(symbol: string, orderId: string) {
-    const result = await this.request("/api/v3/order", "GET", { symbol, orderId }, true)
+    const result = await this.request("/api/v1/v3/order", "GET", { symbol, orderId }, true)
 
     return {
       orderId: result.orderId.toString(),
@@ -131,7 +131,7 @@ export class BinanceUSClient {
 
   async testConnection(): Promise<boolean> {
     try {
-      await this.request("/api/v3/ping")
+      await this.request("/api/v1/v3/ping")
       return true
     } catch (error) {
       console.error("[v0] Binance US connection test failed:", error)

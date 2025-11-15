@@ -12,7 +12,7 @@ import { AnimatePresence, motion } from "framer-motion"
 export default function Notifications() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [showAll, setShowAll] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     fetchNotifications()
@@ -24,7 +24,10 @@ export default function Notifications() {
 
   async function fetchNotifications() {
     try {
-      const response = await fetch("/api/dashboard/notifications")
+      setLoading(true)
+      const response = await fetch("/api/v1/dashboard/notifications", {
+        credentials: "include",
+      })
       const data = await response.json()
 
       if (data.data) {
@@ -36,7 +39,6 @@ export default function Notifications() {
       setLoading(false)
     }
   }
-
   const unreadCount = notifications.filter((n) => !n.read).length
   const displayedNotifications = showAll ? notifications : notifications.slice(0, 3)
 

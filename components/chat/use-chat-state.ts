@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import type { ChatState, ChatMessage, ChatConversation } from "@/types/chat";
-import { mockChatData } from "@/data/chat-mock";
 
 type ChatComponentState = {
   state: ChatState;
@@ -28,7 +27,7 @@ const chatStore = create<ChatStore>((set, get) => ({
   chatState: {
     state: "collapsed",
   },
-  conversations: mockChatData.conversations,
+  conversations: [],
   newMessage: "",
 
   // Actions
@@ -46,11 +45,13 @@ const chatStore = create<ChatStore>((set, get) => ({
 
     if (!newMessage.trim() || !activeConv) return;
 
+    // Note: In production, current user ID should come from auth context
+    // For now, using a placeholder since chat backend is not implemented
     const message: ChatMessage = {
       id: `msg-${Date.now()}`,
       content: newMessage.trim(),
       timestamp: new Date().toISOString(),
-      senderId: mockChatData.currentUser.id,
+      senderId: "current-user", // TODO: Replace with actual user ID from auth
       isFromCurrentUser: true,
     };
 

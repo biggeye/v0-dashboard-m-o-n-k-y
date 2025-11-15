@@ -5,18 +5,20 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import MonkeyIcon from "@/components/icons/monkey"
-import MobileNotifications from "@/components/dashboard/notifications/mobile-notifications"
+import Logo from "@/components/icons/logo"
+// import MobileNotifications from "@/components/dashboard/notifications/mobile-notifications"
 import BellIcon from "@/components/icons/bell"
 
 export function MobileHeader() {
   const [unreadCount, setUnreadCount] = React.useState(0)
-
+/*
   React.useEffect(() => {
     // Fetch notification count
     async function fetchNotificationCount() {
       try {
-        const response = await fetch("/api/dashboard/notifications")
+        const response = await fetch("/api/dashboard/notifications", {
+          credentials: "include",
+        })
         const data = await response.json()
 
         if (data.data) {
@@ -34,18 +36,18 @@ export function MobileHeader() {
     const interval = setInterval(fetchNotificationCount, 30000)
     return () => clearInterval(interval)
   }, [])
-
+*/
   return (
     <div className="lg:hidden h-header-mobile sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="flex items-center justify-between px-4 py-3">
         {/* Left: Sidebar Menu */}
         <SidebarTrigger />
 
-        {/* Center: Monkey Logo + Time */}
+        {/* Center: Logo + Time */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <div className="h-8 w-16 bg-primary rounded flex items-center justify-center">
-              <MonkeyIcon className="size-6 text-primary-foreground" />
+              <Logo className="size-6" width={24} height={24} />
             </div>
           </div>
         </div>
@@ -65,7 +67,7 @@ export function MobileHeader() {
 
           {/* Notifications Sheet */}
           <SheetContent closeButton={false} side="right" className="w-[80%] max-w-md p-0">
-            <MobileNotifications />
+            {/* <MobileNotifications /> */}
           </SheetContent>
         </Sheet>
       </div>

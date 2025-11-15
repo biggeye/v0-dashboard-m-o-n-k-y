@@ -15,6 +15,10 @@ interface Order {
   price?: number
   status: string
   createdAt: string
+  metadata?: {
+    source?: "agent" | "manual"
+    [key: string]: any
+  }
 }
 
 export function OpenOrders() {
@@ -27,7 +31,7 @@ export function OpenOrders() {
 
   async function fetchOpenOrders() {
     try {
-      const response = await fetch("/api/orders?status=open")
+      const response = await fetch("/api/v1/orders?status=open")
       const data = await response.json()
 
       if (data.data) {
@@ -42,7 +46,7 @@ export function OpenOrders() {
 
   async function handleCancelOrder(orderId: string) {
     try {
-      const response = await fetch(`/api/orders/${orderId}`, {
+      const response = await fetch(`/api/v1/orders/${orderId}`, {
         method: "DELETE",
       })
 
@@ -84,6 +88,11 @@ export function OpenOrders() {
                   <p className="font-semibold">{order.symbol}</p>
                   <Badge variant={order.side === "buy" ? "default" : "destructive"}>{order.side.toUpperCase()}</Badge>
                   <Badge variant="outline">{order.orderType}</Badge>
+                  {order.metadata?.source && (
+                    <Badge variant={order.metadata.source === "agent" ? "default" : "secondary"} className="text-xs">
+                      {order.metadata.source === "agent" ? "Agent" : "Manual"}
+                    </Badge>
+                  )}
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Qty: {order.quantity} {order.price && `@ $${order.price}`}

@@ -6,7 +6,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 export function usePriceData(symbol: string | null, refreshInterval = 5000) {
   const { data, error, isLoading, mutate } = useSWR(
-    symbol ? `/api/crypto/price?symbol=${symbol}` : null,
+    symbol ? `/api/v1/crypto/price?symbol=${symbol}` : null,
     fetcher,
     {
       refreshInterval,
@@ -32,15 +32,22 @@ export function useCryptoPrices(symbols: string[] | null, refreshInterval = 5000
     async () => {
       if (!symbols || symbols.length === 0) return []
       
+      // For market overview, we only need the latest price per symbol
       const results = await Promise.all(
         symbols.map((symbol) =>
-          fetch(`/api/crypto/price?symbol=${symbol}`)
+          fetch(`/api/v1/crypto/price?symbol=${symbol}&latest=true`)
             .then((res) => res.json())
-            .catch(() => ({ data: [] }))
+            .then((json) => {
+              // Return the latest price data with symbol attached
+              const latest = json.data?.[0]
+              return latest ? { ...latest, symbol } : null
+            })
+            .catch(() => null)
         )
       )
       
-      return results.flatMap((r) => r.data || [])
+      // Filter out null results and return one price per symbol
+      return results.filter((r) => r !== null)
     },
     {
       refreshInterval,
@@ -58,31 +65,62 @@ export function useCryptoPrices(symbols: string[] | null, refreshInterval = 5000
   }
 }
 
-// Hook for fetching price history for chart
+// Hook for fetching price history for chart with intelligent refresh intervals
 export function usePriceHistory(symbol: string | null, timeframe: string = "1h") {
+  // Calculate refresh interval based on timeframe
+  // Shorter timeframes need more frequent updates, longer timeframes can be less frequent
+  const getRefreshInterval = (tf: string): number => {
+    switch (tf.toLowerCase()) {
+      case "1m":
+      case "5m":
+        return 5000 // 5 seconds for minute-level views
+      case "15m":
+      case "30m":
+        return 10000 // 10 seconds for sub-hourly views
+      case "1h":
+        return 30000 // 30 seconds for hourly views
+      case "4h":
+        return 60000 // 1 minute for 4-hour views
+      case "1d":
+      case "1w":
+      case "1mo":
+        return 300000 // 5 minutes for daily/weekly/monthly views
+      default:
+        return 10000
+    }
+  }
+
+  const refreshInterval = getRefreshInterval(timeframe)
+  
   const { data, error, isLoading, mutate } = useSWR(
-    symbol ? `/api/crypto/price?symbol=${symbol}&timeframe=${timeframe}` : null,
+    symbol ? `/api/v1/crypto/price?symbol=${symbol}&timeframe=${timeframe}` : null,
     fetcher,
     {
-      refreshInterval: 10000,
+      refreshInterval,
       revalidateOnFocus: false,
-      dedupingInterval: 5000,
+      dedupingInterval: Math.min(refreshInterval / 2, 5000), // Prevent duplicate requests
       fallbackData: { data: [] },
+      // Keep previous data while loading new timeframe
+      keepPreviousData: true,
     }
   )
+
+  // Check if backfilling is happening (indicated by a special response field)
+  const isBackfilling = data?.backfilling === true
 
   return {
     history: data?.data || [],
     isLoading,
     error,
     mutate,
+    isBackfilling: isBackfilling || false,
   }
 }
 
 // Hook for portfolio value tracking
 export function usePortfolioValue() {
   const { data, error, isLoading, mutate } = useSWR(
-    "/api/portfolio/value",
+    "/api/v1/portfolio/value",
     fetcher,
     {
       refreshInterval: 30000,

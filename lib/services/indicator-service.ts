@@ -56,7 +56,7 @@ export function getIndicatorTools() {
 }
 
 export async function callIndicatorTool(toolName: string, prices: number[], params?: Record<string, number>) {
-  const response = await fetch("/api/crypto/indicators", {
+  const response = await fetch("/api/v1/crypto/indicators", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

@@ -1,12 +1,11 @@
 "use client";
 
 import React from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useChatState } from "./use-chat-state";
-import { mockChatData } from "@/data/chat-mock";
 import { ChatStatusIndicator } from "./chat-status-indicator";
 import PlusIcon from "../icons/plus";
 import MinusIcon from "../icons/minus";
@@ -43,8 +42,10 @@ export function ChatHeader({
     variant === "mobile"
       ? false
       : chatState.state === "collapsed" && hasNewMessages;
+  // Get the other participant (not the current user)
+  // Note: In production, current user ID should come from auth context
   const otherUser = activeConversation?.participants.find(
-    (p) => p.id !== mockChatData.currentUser.id
+    (p) => p.id !== "current-user" // TODO: Replace with actual user ID from auth
   );
 
   const handleClick = () => {

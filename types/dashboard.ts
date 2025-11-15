@@ -1,7 +1,7 @@
 export interface DashboardStat {
   label: string;
   value: string;
-  description: string;
+  description?: string;
   intent: "positive" | "negative" | "neutral";
   icon: string;
   tag?: string;
@@ -55,15 +55,6 @@ export interface WidgetData {
   temperature: string;
   weather: string;
   date: string;
-}
-
-export interface MockData {
-  dashboardStats: DashboardStat[];
-  chartData: ChartData;
-  rebelsRanking: RebelRanking[];
-  securityStatus: SecurityStatus[];
-  notifications: Notification[];
-  widgetData: WidgetData;
 }
 
 export type TimePeriod = "week" | "month" | "year";
