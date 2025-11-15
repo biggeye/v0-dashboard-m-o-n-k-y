@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { fetchCryptoPrice } from "@/lib/providers/finnhub"
+import { fetchCryptoPrice, fetchCryptoProfile } from "@/lib/providers/finnhub"
 
 /**
  * Validate if a token symbol is trackable on Finnhub
@@ -83,6 +83,16 @@ export async function addTokenToIndex(
     }
   }
 
+  // Try to fetch description from Finnhub profile (optional, may not work for all crypto)
+  let description: string | null = null
+  try {
+    const profile = await fetchCryptoProfile(validation.finnhubSymbol!, apiKey)
+    description = profile.description || null
+  } catch (error) {
+    // Profile fetch is optional - don't fail if it doesn't work
+    console.log(`[v0] Could not fetch profile for ${symbol}, continuing without description`)
+  }
+
   // Insert new token
   const { data: token, error } = await supabase
     .from("token_index")
@@ -90,6 +100,7 @@ export async function addTokenToIndex(
       symbol: symbol.toUpperCase(),
       finnhub_symbol: validation.finnhubSymbol!,
       name: validation.name || symbol.toUpperCase(),
+      description: description,
       is_user_added: true,
       added_by_user_id: userId,
       is_active: true,

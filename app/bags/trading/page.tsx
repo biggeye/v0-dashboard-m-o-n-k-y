@@ -29,6 +29,7 @@ export default function TradingPage() {
   const [refreshKey, setRefreshKey] = useState(0)
   const [selectedTimeframe, setSelectedTimeframe] = useState<Timeframe>("1h")
   const [showAgentChat, setShowAgentChat] = useState(false)
+  const [chatViewMode, setChatViewMode] = useState<"sidebar" | "fullscreen">("sidebar")
   
   const { getOverlaysForSymbol } = useChartVisualization()
   const overlays = getOverlaysForSymbol(selectedSymbol)
@@ -263,19 +264,23 @@ export default function TradingPage() {
         />
       </div>
 
-      {/* AI Assistant Chat - Collapsible Sidebar */}
+      {/* AI Assistant Chat - Collapsible Sidebar / Fullscreen */}
       {showAgentChat && (
-        <div className="fixed right-4 bottom-4 w-96 h-[600px] z-50 shadow-2xl rounded-lg overflow-hidden">
+        <div className={`fixed right-4 bottom-4 z-50 shadow-2xl rounded-lg overflow-hidden ${
+          chatViewMode === "fullscreen" 
+            ? "inset-0 w-full h-full" 
+            : "w-96 h-[600px]"
+        }`}>
           <div className="relative h-full">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowAgentChat(false)}
-              className="absolute top-2 right-2 z-10 h-6 w-6 p-0 bg-background/80 backdrop-blur-sm"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-            <AgentChat />
+            <AgentChat
+              viewMode={chatViewMode}
+              onViewModeChange={setChatViewMode}
+              onClose={() => setShowAgentChat(false)}
+              selectedSymbol={selectedSymbol}
+              onSymbolChange={setSelectedSymbol}
+              selectedTimeframe={selectedTimeframe}
+              onTimeframeChange={setSelectedTimeframe}
+            />
           </div>
         </div>
       )}

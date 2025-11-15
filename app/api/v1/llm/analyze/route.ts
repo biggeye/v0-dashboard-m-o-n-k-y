@@ -226,10 +226,17 @@ async function handleChatMessage(
 
     // Try to extract visualization from tool results
     const visualization = extractVisualizationFromToolResults(toolResults, messages)
+    
+    // Extract tool calls for UI display
+    const toolCallsForUI = toolCalls.map((tc) => ({
+      name: tc.function.name,
+      input: JSON.parse(tc.function.arguments || "{}"),
+    }))
 
     return NextResponse.json({
       result: finalMessage?.content || "I've processed your request using the available tools.",
       visualization,
+      toolCalls: toolCallsForUI,
     })
   }
 

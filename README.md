@@ -1,5 +1,5 @@
 # Bagman
-**Version: 0.7.0b**  
+**Version: 0.7.5b**  
 *A unified overview of architecture, database rules, exchange integrations, deployment, and safety.*
 
 ---
@@ -24,10 +24,41 @@ It supports both *manual* trading workflows and *agentic* LLM-driven strategies,
 At a high level:
 
 - **Backend:** Next.js API routes + Supabase/Postgres  
-- **Frontend:** Next.js + React + SWR  
-- **DB:** Structured with strong constraints, RLS, and tables for orders, executions, strategies, risk limits, connections  
+- **Frontend:** Next.js + React + SWR + Framer Motion  
+- **DB:** Structured with strong constraints, RLS, and tables for orders, executions, strategies, risk limits, connections, price history, tokens, user assets  
 - **LLM Agents:** Modular tool registry with validation, metadata, and handler separation  
 - **Exchange Layer:** Provider → API family → environment → factory → client
+- **Domain Organization:** Domain-driven design with dedicated namespaces for exchanges, LLM, Web3, visualization, providers
+
+### 2.1 Domain Architecture
+
+The codebase follows a **domain-driven design** pattern with clear separation of concerns:
+
+```
+lib/
+├── exchanges/          # Exchange integration layer
+├── llm/               # LLM agent system (tools, handlers, executor)
+├── web3/              # Web3 wallet integration
+│   ├── wallets/       # Wallet connection & management
+│   ├── transactions/  # Transaction operations
+│   └── assets/        # ERC20 token discovery & management
+├── visualization/     # Chart visualization system
+│   ├── store/         # React context for state
+│   ├── generators.ts  # Overlay generation functions
+│   └── service.ts     # Transformation layer
+├── providers/         # External data provider integrations
+│   └── finnhub.ts     # Finnhub price data provider
+└── services/          # Business logic services
+    ├── price-service.ts
+    ├── token-service.ts
+    └── token-price-service.ts
+```
+
+This organization ensures:
+- **Clear boundaries** between domains
+- **Predictable file locations** for maintainability
+- **Reusable components** across the platform
+- **Type safety** throughout with TypeScript
 
 ---
 
@@ -133,7 +164,85 @@ This three-dimensional model allows flexible exchange integration while maintain
 
 ---
 
-## 5. Development & Migration Status
+## 5. Price Tracking & Token Management
+
+### 5.1 Price Data Infrastructure
+
+- **Provider Integration:** Finnhub API for real-time and historical price data
+- **Storage:** Normalized price history with 5-minute interval rounding
+- **Gap Detection:** Automatic detection of missing price intervals
+- **Backfilling:** Intelligent backfilling with subscription-gated historical data
+- **Timeframe Support:** 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w, 1mo
+
+### 5.2 Token Management
+
+- **Token Index:** Master registry of trackable tokens
+- **User Assets:** User-selected tokens with activation workflow
+- **Discovery System:** Automatic ERC20 token discovery from connected wallets
+- **Admin Approval:** Workflow for approving discovered tokens
+- **Price Collection:** Automated price tracking for active tokens
+
+### 5.3 Progressive Loading
+
+- **Smart Strategy:** Progressive loading for large datasets (daily/weekly/monthly views)
+- **Bottleneck Management:** Request throttling, data size safety checks, duplicate prevention
+- **Performance:** Optimized for both real-time minute views and historical monthly views
+
+## 6. Web3 Wallet Integration
+
+### 6.1 Domain Structure
+
+The Web3 system is organized into three domains:
+
+- **Wallets** (`lib/web3/wallets/`): Connection management, chain switching, MetaMask/Coinbase Wallet support
+- **Transactions** (`lib/web3/transactions/`): Transaction sending, gas estimation, receipt handling
+- **Assets** (`lib/web3/assets/`): ERC20 token discovery, user asset management, activation workflow
+
+### 6.2 Features
+
+- **Multi-Chain Support:** Ethereum, BNB Chain, Polygon, Arbitrum, Optimism
+- **Token Discovery:** Automatic ERC20 token detection from wallet balances
+- **Asset Management:** User-selected tokens with price chart integration
+- **Admin Workflow:** Approval system for discovered tokens
+- **Price Integration:** Discovered tokens automatically tracked in price system
+
+## 7. Visualization System
+
+### 7.1 Architecture
+
+The visualization system (`lib/visualization/`) provides:
+
+- **State Management:** React context for chart overlay state
+- **Generators:** Factory functions for creating overlays (SMA, EMA, Bollinger Bands, entry/exit markers)
+- **Service Layer:** Transformation from handler responses to visualizations
+- **Integration:** Seamless integration with LLM agent responses
+
+### 7.2 Features
+
+- **Indicator Overlays:** SMA, EMA, Bollinger Bands with full array calculation
+- **Strategy Visualization:** Complete strategy overlays with entry/exit points
+- **LLM Integration:** Automatic visualization from agent tool responses
+- **Chart Integration:** Real-time overlay management on price charts
+
+## 8. Trading Page Architecture
+
+### 8.1 Hook-Based Data Management
+
+The trading page leverages centralized hooks for data fetching:
+
+- `usePriceHistory()` - Chart and indicator data with intelligent refresh
+- `useCryptoPrices()` - Watchlist price management
+- `usePortfolioValue()` - Real-time portfolio tracking
+- `useChartVisualization()` - Chart overlays from LLM agent
+
+### 8.2 Features
+
+- **Timeframe Selector:** Synchronized across chart and indicators
+- **Portfolio Display:** Real-time value and PnL tracking
+- **AI Assistant:** Integrated chat interface for analysis
+- **Watchlist Management:** Dynamic symbol management with quick actions
+
+## 9. Development & Migration Status
 
 ### Completed Migrations
 
@@ -141,6 +250,14 @@ This three-dimensional model allows flexible exchange integration while maintain
 - ✅ **Tool Registry:** Centralized tool-to-handler mapping with validation
 - ✅ **Handler Extraction:** All handlers moved to dedicated files
 - ✅ **Metadata System:** All tools annotated with category, tags, examples
+- ✅ **Visualization Domain:** Refactored into dedicated namespace with integrated generators
+- ✅ **Web3 Domain:** Separated into wallets, transactions, and assets domains
+- ✅ **Provider Namespace:** Established `lib/providers/` for external data integrations
+- ✅ **Price Tracking:** Comprehensive system with gap detection and backfilling
+- ✅ **Token Management:** User asset system with discovery and approval workflow
+- ✅ **Trading Page:** Streamlined with hook-based data management
+- ✅ **Type Safety:** Fixed ExchangeConnection types and server-only import issues
+- ✅ **Build Fixes:** Resolved dynamic route and motion import issues
 
 ### In Progress / Planned
 
@@ -148,15 +265,11 @@ This three-dimensional model allows flexible exchange integration while maintain
 - 📋 **Rate Limiting:** Per-tool rate limits using metadata
 - 📋 **Auth Enforcement:** Automatic auth checks using `requiresAuth` flag
 - 📋 **Conversation Persistence:** Store chat history in database
-
-### Documentation
-
-Active documentation and migration progress is tracked in:
-- `docs/progress/` - Refactors, migrations, and incremental improvements
+- 📋 **Chat Interface Enhancements:** Fullscreen toggle, tools visibility, chart controls
 
 ---
 
-## 6. Getting Started
+## 10. Getting Started
 
 ### Prerequisites
 
@@ -168,9 +281,18 @@ Active documentation and migration progress is tracked in:
 ### Environment Variables
 
 ```env
+# Supabase (Required)
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+
+# LLM (Required for agent features)
 OPENAI_API_KEY=your_openai_key
+
+# Price Data (Required for price tracking)
+FINNHUB_API_KEY=your_finnhub_api_key
+
+# Price Backfilling (Optional - requires paid Finnhub subscription)
+FINNHUB_SUBSCRIPTION_ENABLED=false
 ```
 
 ### Installation
@@ -182,7 +304,7 @@ npm run dev
 
 ---
 
-## 7. Safety & Security
+## 11. Safety & Security
 
 - **RLS (Row Level Security):** All database tables enforce user-scoped access
 - **Read/Write Separation:** LLM tools are read-only by default; write operations require explicit auth
@@ -191,6 +313,28 @@ npm run dev
 
 ---
 
-## 8. License
+## 12. Technical Implementation Details
+
+### 12.1 Type Safety
+
+- **TypeScript:** Full type coverage with strict mode
+- **Type Definitions:** Centralized in `lib/types/`
+- **Server/Client Separation:** Explicit `server-only` markers for server-side code
+- **Barrel Exports:** Type-only exports to prevent server code in client bundles
+
+### 12.2 Build Configuration
+
+- **Dynamic Routes:** API routes using authentication marked as `force-dynamic`
+- **Static Generation:** Properly configured for pages that can be pre-rendered
+- **Import Patterns:** Standardized animation library imports (framer-motion)
+
+### 12.3 Code Quality
+
+- **Domain-Driven Design:** Clear domain boundaries and separation of concerns
+- **Single Responsibility:** Each module has a focused purpose
+- **DRY Principle:** Eliminated duplicate code through shared services and hooks
+- **Consistent Patterns:** Predictable file structure and naming conventions
+
+## 13. License
 
 [Add your license information here]

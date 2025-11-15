@@ -199,52 +199,6 @@ export interface WalletConnection {
   updatedAt: string
 }
 
-export interface ChainConfig {
-  chainId: number
-  name: string
-  rpcUrl: string
-  nativeCurrency: {
-    name: string
-    symbol: string
-    decimals: number
-  }
-  blockExplorerUrl: string
-}
-
-export const SUPPORTED_CHAINS: Record<number, ChainConfig> = {
-  1: {
-    chainId: 1,
-    name: "Ethereum Mainnet",
-    rpcUrl: "https://eth.llamarpc.com",
-    nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-    blockExplorerUrl: "https://etherscan.io",
-  },
-  56: {
-    chainId: 56,
-    name: "BNB Smart Chain",
-    rpcUrl: "https://bsc-dataseed.binance.org",
-    nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
-    blockExplorerUrl: "https://bscscan.com",
-  },
-  137: {
-    chainId: 137,
-    name: "Polygon",
-    rpcUrl: "https://polygon-rpc.com",
-    nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
-    blockExplorerUrl: "https://polygonscan.com",
-  },
-  42161: {
-    chainId: 42161,
-    name: "Arbitrum One",
-    rpcUrl: "https://arb1.arbitrum.io/rpc",
-    nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-    blockExplorerUrl: "https://arbiscan.io",
-  },
-  10: {
-    chainId: 10,
-    name: "Optimism",
-    rpcUrl: "https://mainnet.optimism.io",
-    nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-    blockExplorerUrl: "https://optimistic.etherscan.io",
-  },
-}
+// Re-export ChainConfig and SUPPORTED_CHAINS from static metadata
+export type { ChainConfig } from "@/lib/data/static-metadata"
+export { SUPPORTED_CHAINS } from "@/lib/data/static-metadata"

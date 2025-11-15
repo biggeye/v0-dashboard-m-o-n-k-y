@@ -4,6 +4,15 @@ import { fetchCryptoPrice } from "@/lib/providers/finnhub"
 import { parseTimeframe } from "@/lib/utils/timeframe"
 import { type NextRequest, NextResponse } from "next/server"
 
+/**
+ * GET /api/v1/crypto/price
+ * Returns recent price data (<1 hour old) with real-time updates
+ * 
+ * For historical data (>1 hour old), use /api/v1/crypto/price/history
+ * which is ISR cached for better performance.
+ * 
+ * This route remains dynamic to handle real-time price updates and gap detection.
+ */
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
